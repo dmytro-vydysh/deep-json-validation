@@ -24,11 +24,17 @@ export class JVClass implements IJVClass, IJVKey {
     if (this.null && value === null)
       return true;
     if (typeof value !== 'object')
-      throwError(JVKeyError, `[CONSTRUCTOR] The instance has type "${typeof value}". Expected type is "object".`, trace.join('.'));
+      throwError(JVKeyError, `[CONSTRUCTOR] The instance has type "${typeof value}". Expected type is "object".`, trace.join('/'));
 
     if ((value instanceof this.type.class) === false)
-      throwError(JVKeyError, `[CONSTRUCTOR] The instance is not an instance of "${this.type.class.name}".`, trace.join('.'));
+      throwError(JVKeyError, `[CONSTRUCTOR] The instance is not an instance of "${this.type.class.name}".`, trace.join('/'));
     return true;
+  }
+  public setNull(value: boolean = true): JVClass {
+    if (typeof value !== 'boolean')
+      throwError(JVKeyError, `The null value must be a boolean. Received "${typeof value}".`, '');
+    this.null = value;
+    return this;
   }
   public json(): IJVKeyClassJSON {
     throw new JVKeyError(`You cannot serialyze a class key.`);
@@ -41,8 +47,8 @@ export class JVClass implements IJVClass, IJVKey {
     throw new JVKeyError(`You cannot deserialyze a class key.`);
   }
   template() { return ''; }
-  
-  public path(trace:Array<string>) { return trace.join('/'); }
+
+  public path(trace: Array<string>) { return trace.join('/'); }
   public example() {
     throw new JVKeyError(`You cannot create an example for a class key.`);
   }

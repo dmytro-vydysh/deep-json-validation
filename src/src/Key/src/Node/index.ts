@@ -37,15 +37,15 @@ export class JVNode implements IJVNode, IJVKey {
     if (value === null) {
       if (this.null)
         return true;
-      throwError(JVKeyTypeError, `The value for the key must be type of "object". Received null.`, trace.join('.'));
+      throwError(JVKeyTypeError, `The value for the key must be type of "object". Received null.`, trace.join('/'));
     }
     if (typeof value !== 'object')
-      throwError(JVKeyTypeError, `The value for the key must be type of "object". Received type "${typeof value}".`, trace.join('.'));
+      throwError(JVKeyTypeError, `The value for the key must be type of "object". Received type "${typeof value}".`, trace.join('/'));
     if (!(this.type instanceof JV))
       if (typeof this.type !== 'function')
-        throwError(JVKeyTypeError, `The instance of the key must be  of "JV". Received an unknown instance.`, trace.join('.'));
+        throwError(JVKeyTypeError, `The instance of the key must be  of "JV". Received an unknown instance.`, trace.join('/'));
       else
-        throwError(JVKeyTypeError, `The instance of the key must be  of "JV". Received instance of  "${(this.type as Function).name}".`, trace.join('.'));
+        throwError(JVKeyTypeError, `The instance of the key must be  of "JV". Received instance of  "${(this.type as Function).name}".`, trace.join('/'));
     return this.type.validate(value, trace);
   }
   public json(): IJVKeyNodeJSON {

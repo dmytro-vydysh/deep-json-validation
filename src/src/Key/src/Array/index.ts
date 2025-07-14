@@ -23,7 +23,11 @@ export class JVArray implements IJVKey {
     min && this.setMin(min);
     max && this.setMax(max);
   }
-  public setMin(value: number): JVArray {
+  public setMin(value?: number): JVArray {
+    if (typeof value === 'undefined') {
+      this.min = undefined;
+      return this;
+    }
     if (typeof value !== 'number')
       throwError(JVKeyError, `The min value must be a number. Received "${typeof value}".`, '');
     if (this.max && this.max > 0 && value > this.max)
@@ -31,7 +35,11 @@ export class JVArray implements IJVKey {
     this.min = value;
     return this;
   }
-  public setMax(value: number): JVArray {
+  public setMax(value?: number): JVArray {
+    if (typeof value === 'undefined') {
+      this.max = undefined;
+      return this;
+    }
     if (typeof value !== 'number')
       throwError(JVKeyError, `The max value must be a number. Received "${typeof value}".`, '');
     if (this.min && this.min > 0 && value < this.min)
@@ -57,20 +65,22 @@ export class JVArray implements IJVKey {
   public validate(value: any, trace: Array<string>): boolean {
     this.testingMessage(value, trace);
     if (!Array.isArray(value))
-      throwError(JVKeyError, `The value is not an array. Expected value is Array.`, trace.join('.'));
+      throwError(JVKeyError, `The value is not an array. Expected value is Array.`, trace.join('/'));
     if (typeof this.min === 'number' && value.length <= this.min)
-      throwError(JVKeyError, `The array has length "${value.length}". Expected length is at least "${this.min}".`, trace.join('.'));
+      throwError(JVKeyError, `The array has length "${value.length}". Expected length is at least "${this.min}".`, trace.join('/'));
     if (typeof this.max === 'number' && value.length >= this.max)
-      throwError(JVKeyError, `The array has length "${value.length}". Expected length is at most "${this.max}".`, trace.join('.'));
+      throwError(JVKeyError, `The array has length "${value.length}". Expected length is at most "${this.max}".`, trace.join('/'));
     for (let i = 0; i < value.length; i++)
       if (!(this.conf.validate(value[i], [...trace, i.toString()])))
         throwError(JVKeyError, `The item at index ${i} is invalid.`, [...trace, i.toString()].join('.'));
     return true;
   }
 
-  template() { return [
-    this.conf.template()
-  ]; }
+  template() {
+    return [
+      this.conf.template()
+    ];
+  }
   public path(trace: Array<string>) {
     return this.conf.path(trace);//trace.join('/').concat('[aaa]'); 
   }

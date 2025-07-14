@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DmytroVydysh/deep-json-validation.git"
+    "url": "git+https://github.com/dmytro-vydysh/deep-json-validation.git"
   },
   "_moduleAliases": {
     "@": "lib"
@@ -21,9 +21,9 @@
   "author": "Dmytro Vydysh (info@dmytrovydysh.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/DmytroVydysh/deep-json-validation/issues"
+    "url": "https://github.com/dmytro-vydysh/deep-json-validation/issues"
   },
-  "homepage": "https://github.com/DmytroVydysh/deep-json-validation#readme",
+  "homepage": "https://github.com/dmytro-vydysh/deep-json-validation#readme",
   "devDependencies": {
     "@types/node": "^22.10.1",
     "typescript": "^5.7.2"

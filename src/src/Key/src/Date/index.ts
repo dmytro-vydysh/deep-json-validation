@@ -39,7 +39,11 @@ export class JVDate implements IJVKey, IJVDate {
 
 
   }
-  public setMin(value: string | number | Date): JVDate {
+  public setMin(value?: string | number | Date): JVDate {
+    if (typeof value === 'undefined') {
+      this.min = undefined;
+      return this;
+    }
     if (typeof value !== 'undefined' && (!(value instanceof Date) && typeof value !== 'number' && typeof value !== 'string'))
       throwError(JVKeyError, `[CONSTRUCTOR] Key has min set to "${value}". Expected min to be a valid date string, milliseconds or Date object.`, '');
     this.min = typeof value !== 'undefined'
@@ -55,6 +59,10 @@ export class JVDate implements IJVKey, IJVDate {
   }
 
   public setMax(value: string | number | Date): JVDate {
+    if (typeof value === 'undefined') {
+      this.max = undefined;
+      return this;
+    }
 
     if (typeof value !== 'undefined' && (!(value instanceof Date) && typeof value !== 'number' && typeof value !== 'string'))
       throwError(JVKeyError, `[CONSTRUCTOR] Key has max set to "${value}". Expected max to be a valid date string, milliseconds or Date object.`, '');
@@ -70,7 +78,11 @@ export class JVDate implements IJVKey, IJVDate {
     return this;
   }
 
-  public setEnum(value: null | TJVItemOfType<string | number | Date>): JVDate {
+  public setEnum(value?: null | TJVItemOfType<string | number | Date>): JVDate {
+    if (typeof value === 'undefined') {
+      this._enum = null;
+      return this;
+    }
     this._enum = !(['boolean', 'undefined'].includes(typeof value)) && Array.isArray(value) ? value.map((item: string | number | Date) => item instanceof Date ? item : new Date(item.toString())) : null;
     if (typeof this._enum !== 'boolean' && Array.isArray(this._enum)) {
       if (this._enum.length === 0)
@@ -102,17 +114,17 @@ export class JVDate implements IJVKey, IJVDate {
     value = value instanceof Date ? value : new Date(value.toString());
 
     if (typeof value !== 'string' && typeof value !== 'number' && !(value instanceof Date))
-      throwError(JVKeyError, `The date has type "${typeof value}". Expected type is "string", "number" or "Date".`, trace.join('.'));
+      throwError(JVKeyError, `The date has type "${typeof value}". Expected type is "string", "number" or "Date".`, trace.join('/'));
 
 
     if (isNaN(new Date(value).getTime()))
-      throwError(JVKeyError, `The date "${value.toString()}" is not a valid date string, milliseconds or Date object.`, trace.join('.'));
+      throwError(JVKeyError, `The date "${value.toString()}" is not a valid date string, milliseconds or Date object.`, trace.join('/'));
     if (this.min instanceof Date && value < this.min)
-      throwError(JVKeyError, `The date "${value.toISOString()}" is earlier than the minimum date "${this.min.toISOString()}".`, trace.join('.'));
+      throwError(JVKeyError, `The date "${value.toISOString()}" is earlier than the minimum date "${this.min.toISOString()}".`, trace.join('/'));
     if (this.max instanceof Date && value > this.max)
-      throwError(JVKeyError, `The date "${value.toISOString()}" is later than the maximum date "${this.max.toISOString()}".`, trace.join('.'));
+      throwError(JVKeyError, `The date "${value.toISOString()}" is later than the maximum date "${this.max.toISOString()}".`, trace.join('/'));
     if (typeof this._enum !== 'boolean' && Array.isArray(this._enum) && !(this._enum.map(d => d.getTime()).includes(new Date(value).getTime())))
-      throwError(JVKeyError, `The date "${value.toISOString()}" is not one of the allowed dates: "${this._enum.map(d => d.toISOString()).join(',')}".`, trace.join('.'));
+      throwError(JVKeyError, `The date "${value.toISOString()}" is not one of the allowed dates: "${this._enum.map(d => d.toISOString()).join(',')}".`, trace.join('/'));
     return true;
   }
   public json(): IJVKeyDateJSON {

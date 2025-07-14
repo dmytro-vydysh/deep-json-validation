@@ -23,13 +23,21 @@ export class JVString implements IJVKey, IJVString {
     _null && this.setNull(_null);
 
   }
-  public setRegex(value: RegExp | string): JVString {
+  public setRegex(value?: RegExp | string): JVString {
+    if (typeof value === 'undefined') {
+      this.regex = undefined;
+      return this;
+    }
     if (typeof value !== 'string' && !(value instanceof RegExp))
       throwError(JVKeyError, `The regex value must be a string or a RegExp. Received "${typeof value}".`, '');
     this.regex = typeof value === 'string' ? new RegExp(value) : value;
     return this;
   }
-  public setEnum(value: TJVItemOfType<string> | null): JVString {
+  public setEnum(value?: TJVItemOfType<string> | null): JVString {
+    if (typeof value === 'undefined') {
+      this._enum = null;
+      return this;
+    }
     if (typeof value !== 'undefined' && value !== null && !Array.isArray(value))
       throwError(JVKeyError, `The enum value must be an array or null. Received "${typeof value}".`, '');
     if (value && value.length === 0)
@@ -56,14 +64,14 @@ export class JVString implements IJVKey, IJVString {
       return true;
 
     if (typeof value !== this.type)
-      throwError(JVKeyError, `The type of the value is "${typeof value}". Expected type is "string".`, trace.join('.'));
+      throwError(JVKeyError, `The type of the value is "${typeof value}". Expected type is "string".`, trace.join('/'));
 
     if (typeof this.regex !== 'undefined' && !this.regex.test(value))
-      throwError(JVKeyRegexError, `The value "${value}" does not match the regex "${this.regex.source}".`, trace.join('.'));
+      throwError(JVKeyRegexError, `The value "${value}" does not match the regex "${this.regex.source}".`, trace.join('/'));
 
     if (typeof this._enum !== 'boolean' && Array.isArray(this._enum))
       if (!(this._enum.includes(value)))
-        throwError(JVKeyError, `The value "${value}" is not one of the allowed values: "${this._enum.join(',')}".`, trace.join('.'));
+        throwError(JVKeyError, `The value "${value}" is not one of the allowed values: "${this._enum.join(',')}".`, trace.join('/'));
 
     return true;
   }
@@ -86,7 +94,7 @@ export class JVString implements IJVKey, IJVString {
   }
   public path(trace: Array<string>) { return trace.join('/'); }
   public exampleWithRules() {
-    let regExp = this.regex ? `Must match ${this.regex.source}` : 'Has no regex';
+    let regExp = this.regex ? `Must match ${this.regex.source}` : 'Has no specific regex';
     let isNull = this.null ? 'Can be null' : 'Cannot be null';
     let enumValues = this._enum ? `Allowed values: ${this._enum.join(', ')}` : '';
     return `A string, ${[regExp, isNull, enumValues].filter(Boolean).join(', ')}.`;

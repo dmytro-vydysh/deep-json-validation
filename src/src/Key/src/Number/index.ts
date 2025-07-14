@@ -27,7 +27,11 @@ export class JVNumber implements IJVKey, IJVNumber {
     _enum && this.setEnum(_enum);
     _null && this.setNull(_null);
   }
-  public setMin(value: number): JVNumber {
+  public setMin(value?: number): JVNumber {
+    if (typeof value === 'undefined') {
+      this.min = undefined;
+      return this;
+    }
     if (typeof value !== 'number')
       throwError(JVKeyError, `The min value must be a number. Received "${typeof value}".`, '');
     if (this.max && this.max > 0 && value > this.max)
@@ -36,6 +40,10 @@ export class JVNumber implements IJVKey, IJVNumber {
     return this;
   }
   public setMax(value: number): JVNumber {
+    if (typeof value === 'undefined') {
+      this.max = undefined;
+      return this;
+    }
     if (typeof value !== 'number')
       throwError(JVKeyError, `The max value must be a number. Received "${typeof value}".`, '');
     if (this.min && this.min > 0 && value < this.min)
@@ -43,7 +51,12 @@ export class JVNumber implements IJVKey, IJVNumber {
     this.max = value;
     return this;
   }
-  public setEnum(value: TJVItemOfType<number> | null): JVNumber {
+  public setEnum(value?: TJVItemOfType<number> | null): JVNumber {
+
+    if (typeof value === 'undefined') {
+      this._enum = null;
+      return this;
+    }
     if (typeof value !== 'undefined' && value !== null && !Array.isArray(value))
       throwError(JVKeyError, `The enum value must be an array or null. Received "${typeof value}".`, '');
     if (value && value.length === 0)
@@ -69,14 +82,14 @@ export class JVNumber implements IJVKey, IJVNumber {
     if (this.null && value === null)
       return true;
     if (typeof value !== this.type)
-      throwError(JVKeyError, `The type of the value is "${typeof value}". Expected type is "number".`, trace.join('.'));
+      throwError(JVKeyError, `The type of the value is "${typeof value}". Expected type is "number".`, trace.join('/'));
 
-    if (typeof this.min === 'number' && (value <= this.min))
-      throwError(JVKeyError, `The value ${value} is less than the minimum value ${this.min}`, trace.join('.'));
-    if (typeof this.max === 'number' && (value >= this.max))
-      throwError(JVKeyError, `The value ${value} is greater than the maximum value ${this.max}`, trace.join('.'));
+    if (typeof this.min === 'number' && (value < this.min))
+      throwError(JVKeyError, `The value ${value} is less than the minimum value ${this.min}`, trace.join('/'));
+    if (typeof this.max === 'number' && (value > this.max))
+      throwError(JVKeyError, `The value ${value} is greater than the maximum value ${this.max}`, trace.join('/'));
     if (typeof this._enum !== 'boolean' && Array.isArray(this._enum) && !this._enum.includes(value))
-      throwError(JVKeyError, `The value ${value} is not one of the allowed values: ${this._enum.join(',')}`, trace.join('.'));
+      throwError(JVKeyError, `The value ${value} is not one of the allowed values: ${this._enum.join(',')}`, trace.join('/'));
     return true;
   }
   public json(): IJVKeyNumberJSON {
@@ -98,8 +111,8 @@ export class JVNumber implements IJVKey, IJVNumber {
   template() { return ''; }
   public path(trace: Array<string>) { return trace.join('/'); }
   public exampleWithRules() {
-    let hasMin = typeof this.min === 'number' ? `Must be greater than ${this.min}` : '';
-    let hasMax = typeof this.max === 'number' ? `Must be less than ${this.max}` : '';
+    let hasMin = typeof this.min === 'number' ? `Must be greater or equal to ${this.min}` : '';
+    let hasMax = typeof this.max === 'number' ? `Must be less or equal to ${this.max}` : '';
     let isNull = this.null ? 'Can be null' : 'Cannot be null';
     let enumValues = this._enum ? `Allowed values: ${this._enum.join(', ')}` : '';
     return `A number, ${[hasMin, hasMax, isNull, enumValues].filter(Boolean).join(', ')}.`;

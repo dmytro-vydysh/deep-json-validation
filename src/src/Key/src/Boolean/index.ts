@@ -37,7 +37,7 @@ export class JVBoolean implements IJVKey, IJVBoolean {
     if (this.null && value === null)
       return true;
     if (typeof value !== this.type)
-      throwError(JVKeyError, `The boolean has type "${typeof value}". Expected type is "boolean".`, trace.join('.'));
+      throwError(JVKeyError, `The boolean has type "${typeof value}". Expected type is "boolean".`, trace.join('/'));
     return true;
   }
   public json(): IJVKeyBooleanJSON {

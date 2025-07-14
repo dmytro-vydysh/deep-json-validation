@@ -289,7 +289,7 @@ export class JV implements IJV {
 
     const get_key_type = (value: any, trace: Array<string>): IJVKey | null => {
       let config: IJVKey | null = null;
-      if(value === null || typeof value === 'undefined')
+      if (value === null || typeof value === 'undefined')
         return new JVAny();
       switch (typeof value) {
         case 'string':
@@ -397,6 +397,7 @@ export class JV implements IJV {
 
     return jv;
   }
+
   private static isValidDate(value: string | number | Date): boolean {
     const isISOString = typeof value === 'string' && !isNaN(Date.parse(value));
     const isTimestamp = typeof value === 'number' && !isNaN(new Date(value).getTime()) && !isNaN(value) && value === new Date(value).getTime();
@@ -404,100 +405,7 @@ export class JV implements IJV {
     return isISOString || isTimestamp || isDateObject;
   }
 
-
-  public static path(json: Record<string, any>, trace: Array<string> = []): Record<string, any> {
-    const obj: Record<string, any> = {};
-
-    for (const key of Object.keys(json)) {
-      const value = json[key];
-
-      if (Array.isArray(value)) {
-        obj[key] = value.map((item, index) => {
-          if (typeof item === 'object' && item !== null) {
-            return JV.path(item, [...trace, key, index.toString()]);
-          } else {
-            return [...trace, key, index.toString()].join('/');
-          }
-        });
-      } else if (typeof value === 'object' && value !== null) {
-        obj[key] = JV.path(value, [...trace, key]);
-      } else {
-        obj[key] = [...trace, key].join('/');
-      }
-    }
-
-    return obj;
-  }
-  public static pathWithValues(json: Record<string, any>, trace: Array<string> = []): Record<string, any> {
-    const obj: Record<string, any> = {};
-
-    for (const key of Object.keys(json)) {
-      const value = json[key];
-
-      if (Array.isArray(value)) {
-        obj[key] = value.map((item, index) => {
-          const path = [...trace, key, index.toString()].join('/');
-          if (typeof item === 'object' && item !== null) {
-            return JV.pathWithValues(item, [...trace, key, index.toString()]);
-          } else {
-            return { value: item, path };
-          }
-        });
-      } else if (typeof value === 'object' && value !== null) {
-        obj[key] = JV.pathWithValues(value, [...trace, key]);
-      } else {
-        const path = [...trace, key].join('/');
-        obj[key] = { value, path };
-      }
-    }
-
-    return obj;
-  }
-  public static materialize(
-    template: any,
-    source: Record<string, any>,
-    errorOnNonExistentValues: boolean = false
-  ): any {
-    const resolvePath = (path: string, obj: any): any => {
-      const parts = path.split('/');
-
-      let value = obj;
-      for (let i = 0; i < parts.length; i++) {
-        const raw = parts[i];
-        const key = /^\d+$/.test(raw) ? Number(raw) : raw;
-
-        if (value == null || !(key in value)) {
-          if (errorOnNonExistentValues) {
-            throw new Error(`Path "${parts.slice(0, i + 1).join('/')}" does not exist in source object.`);
-          }
-          return undefined;
-        }
-
-        value = value[key];
-      }
-
-      return value;
-    };
-
-    if (typeof template === 'string') {
-      return resolvePath(template, source);
-    }
-
-    if (Array.isArray(template)) {
-      return template.map(item =>
-        JV.materialize(item, source, errorOnNonExistentValues)
-      );
-    }
-
-    if (typeof template === 'object' && template !== null) {
-      const result: Record<string, any> = {};
-      for (const key of Object.keys(template)) {
-        result[key] = JV.materialize(template[key], source, errorOnNonExistentValues);
-      }
-      return result;
-    }
-
-    return template;
-  }
+ 
+  
 
 }

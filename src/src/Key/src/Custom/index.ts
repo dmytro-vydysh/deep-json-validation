@@ -54,7 +54,10 @@ export class JVCustom implements IJVKey {
   template() { return ''; }
   public validate(value: any, trace: Array<string>): boolean {
     try {
-      return this._f_validation(value, trace);
+      const res = this._f_validation(value, trace);
+      if (!res)
+        throwError(JVKeyError, `The value "${value}" is not valid for the custom key.`, trace.join('/'));
+      return false;
     } catch (e) {
       return false;
     }

@@ -41,7 +41,6 @@ export class JVAny implements IJVKey, IJVAny {
     return 'Any seriazable value, including null.';
   }
   public exampleWithRules() {
-    let isNull = this.null ? 'Can be null' : 'Cannot be null';
-    return `Any seriazable value, ${[isNull].filter(Boolean).join(', ')}.`;
+    return `Any seriazable value`;
   }
 }
