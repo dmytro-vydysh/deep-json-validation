@@ -1,0 +1,31 @@
+{
+  "name": "deep-json-validation",
+  "version": "1.0.1",
+  "description": "Validate complex JSON objects with deep structure",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "tsc && node lib/test/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DmytroVydysh/deep-json-validation.git"
+  },
+  "_moduleAliases": {
+    "@": "lib"
+  },
+  "keywords": [
+    "JSON",
+    "validation",
+    "deep"
+  ],
+  "author": "Dmytro Vydysh (info@dmytrovydysh.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DmytroVydysh/deep-json-validation/issues"
+  },
+  "homepage": "https://github.com/DmytroVydysh/deep-json-validation#readme",
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "typescript": "^5.7.2"
+  }
+}
