@@ -52,6 +52,7 @@ export class JVNumber implements IJVKey, IJVNumber {
     this._max = value;
     return this;
   }
+  public max = this.setMax;
   public setEnum(value?: TJVItemOfType<number> | null): JVNumber {
 
     if (typeof value === 'undefined') {

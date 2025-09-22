@@ -59,7 +59,7 @@ export class JVClass implements IJVClass, IJVKey {
   }
   public json(): IJVKeyClassJSON {
     if (typeof this.type !== 'string')
-      throw new JVKeyError(`You cannot serialize a class key using real class instances.`);
+      throw new JVKeyError(`You cannot serialize a class key using real classes.`);
     return {
       type: 'class',
       class: this.type,

@@ -178,7 +178,7 @@ export class JVKey implements IJVKeyGlobal {
       let _typeof = 'undefined';
       if (json && typeof json === 'object' && 'type' in json)
         _typeof = typeof (json as any).type;
-      throw new JVKeyError(`The key type is not a string. Received type "${_typeof}". Expected type is "string" (in any case, you cannot serialize and deserialize a class key using real class instances AND JVCustom validation instances).`);
+      throw new JVKeyError(`The key type is not a string. Received type "${_typeof}". Expected type is "string" (in any case, you cannot serialize and deserialize a class key using real classes AND JVCustom validation instances).`);
     }
   }
   public static fromJSON(json: IJVKeyJSON): JVKey {

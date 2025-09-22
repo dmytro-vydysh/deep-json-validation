@@ -48,9 +48,8 @@ export class JVArray implements IJVKey {
     this._max = value;
     return this;
   }
+  public max = this.setMax;
   public setConf(conf: IJVKey): JVArray {
-    if (!(conf instanceof JVKey))
-      throwError(JVKeyError, `The config must be an instance of JVKey. Received "${typeof conf}".`, '');
     this.conf = conf;
     this.type = conf.type;
     this.null = conf.null;

@@ -37,7 +37,7 @@ export class JVCustom implements IJVKey {
   /**
    * @description This is the function that validates the value.
    */
-  private _f_validation: (value: any, trace: Array<string>) => boolean;
+  private _f_validation: string | ((value: any, trace: Array<string>) => boolean);
 
   /**
    * @description This is a flag that indicates whether the key can be null.
@@ -50,26 +50,28 @@ export class JVCustom implements IJVKey {
    * @throws {JVKeyError} if the validation function is not provided.
    * @param _null 
    */
-  constructor(f_validation: (value: any, trace: Array<string>) => boolean) {
-    if (typeof f_validation !== 'function')
-      throwError(JVKeyError, `The validation function is not provided or is not a function.`, '');
-    if (typeof f_validation === 'string') {
-      const func = JV.getCustom(f_validation);
-      if (!func)
-        throwError(JVKeyError, `The custom validation function "${f_validation}" is not registered. Please register it using "JV.registerCustom(name, func)".`, '');
-      this._f_validation = func as (value: any, trace: Array<string>) => boolean;
-    } else this._f_validation = f_validation;
+  constructor(f_validation: string | ((value: any, trace: Array<string>) => boolean)) {
+    this._f_validation = f_validation;
     this.null = false;
   }
 
   template() { return ''; }
   public validate(value: any, trace: Array<string>, _throwError: boolean = true): boolean {
     try {
-      const res = this._f_validation(value, trace);
-      if (!res)
-        if (_throwError)
-          throwError(JVKeyError, `The value "${value}" is not valid for the custom key.`, trace.join('/'));
-        else return false;
+      const f_validation = (typeof this._f_validation === 'string') ? JV.getCustom(this._f_validation) : this._f_validation;
+      if (typeof f_validation !== 'function')
+        throwError(JVKeyError, `The custom validation function is not a function.`, trace.join('/'));
+      if (!f_validation || typeof f_validation === 'undefined')
+        throwError(JVKeyError, `The custom validation function is not defined.`, trace.join('/'));
+      else {
+
+        const res = f_validation(value, trace, _throwError);
+        if (!res)
+          if (_throwError)
+            throwError(JVKeyError, `The value "${value}" is not valid for the custom key.`, trace.join('/'));
+          else return false;
+        return true;
+      }
       return true;
     } catch (e) {
       return false;
@@ -77,7 +79,7 @@ export class JVCustom implements IJVKey {
   };
   public json(): IJVKeyCustomJSON {
     if (typeof this._f_validation === 'function')
-      throw new Error('You cannot serialize a custom key in JSON Validator. It is not supported.');
+      throw new JVKeyError('You cannot serialize a direct custom validator in JSON.');
     return {
       type: 'custom',
       callback: (this._f_validation as unknown as string),

@@ -4,7 +4,8 @@
   "description": "Validate complex JSON objects with deep structure",
   "main": "lib/index.js",
   "scripts": {
-    "test": "tsc && node lib/test/index.js"
+    "test": "tsc && node lib/test/index.js",
+    "doc": "tsc && node lib/test/doc.js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +27,7 @@
   "homepage": "https://github.com/dmytro-vydysh/deep-json-validation#readme",
   "devDependencies": {
     "@types/node": "^22.10.1",
+    "error-extension": "^1.0.2",
     "mongoose": "^8.18.2",
     "typescript": "^5.7.2"
   }
