@@ -1,6 +1,6 @@
 {
   "name": "deep-json-validation",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Validate complex JSON objects with deep structure",
   "main": "lib/index.js",
   "scripts": {
@@ -27,8 +27,6 @@
   "homepage": "https://github.com/dmytro-vydysh/deep-json-validation#readme",
   "devDependencies": {
     "@types/node": "^22.10.1",
-    "error-extension": "^1.0.2",
-    "mongoose": "^8.18.2",
     "typescript": "^5.7.2"
   }
 }
