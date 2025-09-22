@@ -4,11 +4,13 @@ import { IJVKeyAnyJSON, JVAny } from "./src/Any";
 import { IJVKeyArrayJSON, JVArray } from "./src/Array";
 import { IJVKeyBigIntJSON, JVBigInt } from "./src/BigInt";
 import { IJVKeyBooleanJSON, JVBoolean } from "./src/Boolean";
-import { IJVKeyClassJSON } from "./src/Class";
+import { IJVKeyClassJSON, JVClass } from "./src/Class";
+import { IJVKeyCustomJSON, JVCustom } from "./src/Custom";
 import { IJVKeyDateJSON, JVDate } from "./src/Date";
 import { IJVKeyFileJSON, JVFile } from "./src/File";
 import { IJVKeyNodeJSON, JVNode } from "./src/Node";
 import { IJVKeyNumberJSON, JVNumber } from "./src/Number";
+import { IJVKeySomeOfJSON, JVSomeOf } from "./src/SomeOf";
 import { IJVKeyStringJSON, JVString } from "./src/String";
 
 
@@ -30,8 +32,8 @@ export type TJVKeyType = string | IJV | File | { class: Function } | [string | I
 export interface IJVKey {
   type: TJVKeyType;
   null: boolean;
-  validate: (value: any, trace: Array<string>) => boolean;
-  json: () => IJVKeyStringJSON | IJVKeyNumberJSON | IJVKeyNodeJSON | IJVKeyFileJSON | IJVKeyDateJSON | IJVKeyClassJSON | IJVKeyBooleanJSON | IJVKeyBigIntJSON | IJVKeyArrayJSON | IJVKeyAnyJSON;
+  validate: (value: any, trace: Array<string>, throwError: boolean) => boolean;
+  json: () => IJVKeyStringJSON | IJVKeyNumberJSON | IJVKeyNodeJSON | IJVKeyFileJSON | IJVKeyDateJSON | IJVKeyClassJSON | IJVKeyBooleanJSON | IJVKeyBigIntJSON | IJVKeyArrayJSON | IJVKeyAnyJSON | IJVKeySomeOfJSON | IJVKeyCustomJSON;
   example: () => any;
   template: () => any;
   exampleWithRules: () => any;
@@ -41,11 +43,11 @@ export interface IJVKey {
 export interface IJVKeyGlobal {
   name: string;
   config: IJVKey;
-  validate: (value: any, trace: Array<string>) => boolean;
+  validate: (value: any, trace: Array<string>, throwError: boolean) => boolean;
   json: () => {
     name: string;
     required: boolean;
-    config: IJVKeyStringJSON | IJVKeyNumberJSON | IJVKeyNodeJSON | IJVKeyFileJSON | IJVKeyDateJSON | IJVKeyClassJSON | IJVKeyBooleanJSON | IJVKeyBigIntJSON | IJVKeyArrayJSON | IJVKeyAnyJSON
+    config: IJVKeyStringJSON | IJVKeyNumberJSON | IJVKeyNodeJSON | IJVKeyFileJSON | IJVKeyDateJSON | IJVKeyClassJSON | IJVKeyBooleanJSON | IJVKeyBigIntJSON | IJVKeyArrayJSON | IJVKeyAnyJSON | IJVKeySomeOfJSON | IJVKeyCustomJSON;
   };
 
   path: (trace: Array<string>) => Record<string, any> | string;
@@ -82,6 +84,7 @@ export class JVKey implements IJVKeyGlobal {
    */
   public required: boolean;
 
+
   /**
    * 
    * @param name the name of the key
@@ -101,7 +104,7 @@ export class JVKey implements IJVKeyGlobal {
    * @returns {boolean} true if the value is valid, false otherwise
    * @throws {JVKeyRequiredError} if the key is required and the value is undefined or another error if the value is invalid
    */
-  public validate(value: any, trace: Array<string> = []): boolean {
+  public validate(value: any, trace: Array<string> = [], _throwError: boolean = true): boolean {
 
     /** If there is no value */
     if (typeof value === 'undefined')
@@ -115,7 +118,7 @@ export class JVKey implements IJVKeyGlobal {
         return true;
 
     /** If there is a valid type of value, we will validate it using the key configuration */
-    return this.config.validate(value, [...trace, this.name]);
+    return this.config.validate(value, [...trace, this.name], _throwError);
   }
 
   /**
@@ -163,11 +166,20 @@ export class JVKey implements IJVKeyGlobal {
         case 'node': return JVNode.fromJSON(json as IJVKeyNodeJSON);
         case 'date': return JVDate.fromJSON(json as IJVKeyDateJSON);
         case 'array': return JVArray.fromJSON(json as IJVKeyArrayJSON);
+        case 'some': return JVSomeOf.fromJSON(json as IJVKeySomeOfJSON);
+        case 'class': return JVClass.fromJSON(json as IJVKeyClassJSON);
+        case 'custom': return JVCustom.fromJSON(json as IJVKeyCustomJSON);
 
         /** The key has an invalid */
         default: throw new JVKeyError(`Unknown key type "${(json as any).type}" in JSON config.`);
       }
-    } else throw new JVKeyError(`The key type is not a string. Received type "${typeof json.type}". Expected type is "string" (in any case, you cannot serialize and deserialize a class key).`);
+    } else {
+
+      let _typeof = 'undefined';
+      if (json && typeof json === 'object' && 'type' in json)
+        _typeof = typeof (json as any).type;
+      throw new JVKeyError(`The key type is not a string. Received type "${_typeof}". Expected type is "string" (in any case, you cannot serialize and deserialize a class key using real class instances AND JVCustom validation instances).`);
+    }
   }
   public static fromJSON(json: IJVKeyJSON): JVKey {
     return new JVKey(json.name, json.required, JVKey.keyFromJSON(json.config))

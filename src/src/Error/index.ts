@@ -12,7 +12,7 @@ export class JVError extends Error {
 /**
  * Error class for key-related errors in JSON validation.
  */
-export class JVKeyError extends Error {
+export class JVKeyError extends JVError {
   constructor(message: string) {
     super(message);
     this.name = "JVKeyError";
@@ -22,7 +22,7 @@ export class JVKeyError extends Error {
 /**
  * Error class for required key errors in JSON validation.
  */
-export class JVKeyRequiredError extends Error {
+export class JVKeyRequiredError extends JVError {
   constructor(message: string) {
     super(message);
     this.name = "JVKeyRequiredError";
@@ -32,7 +32,7 @@ export class JVKeyRequiredError extends Error {
 /**
  * Error class for key regex validation errors in JSON validation.
  */
-export class JVKeyRegexError extends Error {
+export class JVKeyRegexError extends JVError {
   constructor(message: string) {
     super(message);
     this.name = "JVKeyRegexError";
@@ -42,7 +42,7 @@ export class JVKeyRegexError extends Error {
 /**
  * Error class for key type validation errors in JSON validation.
  */
-export class JVKeyTypeError extends Error {
+export class JVKeyTypeError extends JVError {
   constructor(message: string) {
     super(message);
     this.name = "JVKeyTypeError";
@@ -54,9 +54,9 @@ export class JVKeyTypeError extends Error {
  * @param errorInstance the error class to throw
  * @param message the error message to display
  * @param trace the trace of the error, used for error reporting
- * @throws {JVError | JVKeyError | JVKeyRegexError | JVKeyRequiredError} Throws an error with the specified message and trace.
+ * @throws {JVError} Throws an error with the specified message and trace.
  */
-export function throwError(errorInstance: typeof JVError | typeof JVKeyError | typeof JVKeyRegexError | typeof JVKeyRequiredError, message: string, trace: string): void {
+export function throwError(errorInstance: typeof JVError, message: string, trace: string): void {
   try {
 
     /**

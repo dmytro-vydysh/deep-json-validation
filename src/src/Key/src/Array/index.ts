@@ -14,8 +14,8 @@ export class JVArray implements IJVKey {
   public type: TJVKeyType = 'array';
   public null: boolean = false;
   private conf: IJVKey;
-  private min?: number;
-  private max?: number;
+  private _min?: number;
+  private _max?: number;
   constructor(conf: IJVKey, min?: number, max?: number) {
     this.conf = conf;
     this.type = conf.type;
@@ -25,26 +25,27 @@ export class JVArray implements IJVKey {
   }
   public setMin(value?: number): JVArray {
     if (typeof value === 'undefined') {
-      this.min = undefined;
+      this._min = undefined;
       return this;
     }
     if (typeof value !== 'number')
       throwError(JVKeyError, `The min value must be a number. Received "${typeof value}".`, '');
-    if (this.max && this.max > 0 && value > this.max)
-      throwError(JVKeyError, `The min value "${value}" is greater than the max value "${this.max}".`, '');
-    this.min = value;
+    if (this._max && this._max > 0 && value > this._max)
+      throwError(JVKeyError, `The min value "${value}" is greater than the max value "${this._max}".`, '');
+    this._min = value;
     return this;
   }
+  public min = this.setMin;
   public setMax(value?: number): JVArray {
     if (typeof value === 'undefined') {
-      this.max = undefined;
+      this._max = undefined;
       return this;
     }
     if (typeof value !== 'number')
       throwError(JVKeyError, `The max value must be a number. Received "${typeof value}".`, '');
-    if (this.min && this.min > 0 && value < this.min)
-      throwError(JVKeyError, `The max value "${value}" is less than the min value "${this.min}".`, '');
-    this.max = value;
+    if (this._min && this._min > 0 && value < this._min)
+      throwError(JVKeyError, `The max value "${value}" is less than the min value "${this._min}".`, '');
+    this._max = value;
     return this;
   }
   public setConf(conf: IJVKey): JVArray {
@@ -55,6 +56,7 @@ export class JVArray implements IJVKey {
     this.null = conf.null;
     return this;
   }
+  public config = this.setConf;
   private testingMessage(value: any, trace: Array<string>): void {
     try {
       if (process.env.JSON_VALIDATOR_TESTING_MODE_KEY === 'yes i am testing') {
@@ -62,17 +64,25 @@ export class JVArray implements IJVKey {
       }
     } catch (e) { }
   }
-  public validate(value: any, trace: Array<string>): boolean {
+  public validate(value: any, trace: Array<string>, _throwError: boolean = true): boolean {
     this.testingMessage(value, trace);
     if (!Array.isArray(value))
-      throwError(JVKeyError, `The value is not an array. Expected value is Array.`, trace.join('/'));
-    if (typeof this.min === 'number' && value.length <= this.min)
-      throwError(JVKeyError, `The array has length "${value.length}". Expected length is at least "${this.min}".`, trace.join('/'));
-    if (typeof this.max === 'number' && value.length >= this.max)
-      throwError(JVKeyError, `The array has length "${value.length}". Expected length is at most "${this.max}".`, trace.join('/'));
+      if (_throwError)
+        throwError(JVKeyError, `The value is not an array. Expected value is Array.`, trace.join('/'));
+      else return false;
+    if (typeof this._min === 'number' && value.length < this._min)
+      if (_throwError)
+        throwError(JVKeyError, `The array has length "${value.length}". Expected length is at least "${this._min}".`, trace.join('/'));
+      else return false;
+    if (typeof this._max === 'number' && value.length > this._max)
+      if (_throwError)
+        throwError(JVKeyError, `The array has length "${value.length}". Expected length is at most "${this._max}".`, trace.join('/'));
+      else return false;
     for (let i = 0; i < value.length; i++)
-      if (!(this.conf.validate(value[i], [...trace, i.toString()])))
-        throwError(JVKeyError, `The item at index ${i} is invalid.`, [...trace, i.toString()].join('.'));
+      if (!(this.conf.validate(value[i], [...trace, i.toString()], _throwError)))
+        if (_throwError)
+          throwError(JVKeyError, `The item at index ${i} is invalid.`, [...trace, i.toString()].join('.'));
+        else return false;
     return true;
   }
 

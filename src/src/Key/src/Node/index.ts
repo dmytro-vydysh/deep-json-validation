@@ -25,6 +25,9 @@ export class JVNode implements IJVNode, IJVKey {
     this.null = value;
     return this;
   }
+  public nullable(nullable: boolean = true) {
+    return this.setNull(nullable);
+  }
   private testingMessage(value: any, trace: Array<string>): void {
     try {
       if (process.env.JSON_VALIDATOR_TESTING_MODE_KEY === 'yes i am testing') {
@@ -32,21 +35,32 @@ export class JVNode implements IJVNode, IJVKey {
       }
     } catch (e) { }
   }
-  public validate(value: any, trace: Array<string>): boolean {
+  public validate(value: any, trace: Array<string>, _throwError: boolean = true): boolean {
     this.testingMessage(value, trace);
     if (value === null) {
       if (this.null)
         return true;
-      throwError(JVKeyTypeError, `The value for the key must be type of "object". Received null.`, trace.join('/'));
+      if (_throwError)
+        throwError(JVKeyTypeError, `The value for the key must be type of "object". Received null.`, trace.join('/'));
+      else return false;
     }
-    if (typeof value !== 'object')
-      throwError(JVKeyTypeError, `The value for the key must be type of "object". Received type "${typeof value}".`, trace.join('/'));
+    if (typeof value !== 'object') {
+      if (_throwError)
+        throwError(JVKeyTypeError, `The value for the key must be type of "object". Received type "${typeof value}".`, trace.join('/'));
+      else return false;
+    }
     if (!(this.type instanceof JV))
-      if (typeof this.type !== 'function')
-        throwError(JVKeyTypeError, `The instance of the key must be  of "JV". Received an unknown instance.`, trace.join('/'));
-      else
-        throwError(JVKeyTypeError, `The instance of the key must be  of "JV". Received instance of  "${(this.type as Function).name}".`, trace.join('/'));
-    return this.type.validate(value, trace);
+      if (typeof this.type !== 'function') {
+        if (_throwError)
+          throwError(JVKeyTypeError, `The instance of the key must be  of "JV". Received an unknown instance.`, trace.join('/'));
+        else return false;
+      }
+      else {
+        if (_throwError)
+          throwError(JVKeyTypeError, `The instance of the key must be  of "JV". Received instance of  "${(this.type as Function).name}".`, trace.join('/'));
+        else return false;
+      }
+    return this.type.validate(value, _throwError, trace);
   }
   public json(): IJVKeyNodeJSON {
     return {

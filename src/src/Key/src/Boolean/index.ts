@@ -24,6 +24,9 @@ export class JVBoolean implements IJVKey, IJVBoolean {
     this.null = value;
     return this;
   }
+  public nullable(nullable: boolean = true) {
+    return this.setNull(nullable);
+  }
 
   private testingMessage(value: any, trace: Array<string>): void {
     try {
@@ -32,12 +35,14 @@ export class JVBoolean implements IJVKey, IJVBoolean {
       }
     } catch (e) { }
   }
-  public validate(value: any, trace: Array<string>): boolean {
+  public validate(value: any, trace: Array<string>, _throwError: boolean = true): boolean {
     this.testingMessage(value, trace);
     if (this.null && value === null)
       return true;
     if (typeof value !== this.type)
-      throwError(JVKeyError, `The boolean has type "${typeof value}". Expected type is "boolean".`, trace.join('/'));
+      if (_throwError)
+        throwError(JVKeyError, `The boolean has type "${typeof value}". Expected type is "boolean".`, trace.join('/'));
+      else return false;
     return true;
   }
   public json(): IJVKeyBooleanJSON {

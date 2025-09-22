@@ -7,8 +7,8 @@ import { JV } from "../../../JsonValidator";
 export interface IJVFile {
   extensions?: Array<string>;
   mimeTypes?: Array<string>;
-  minSize?: number;
-  maxSize?: number;
+  _minSize?: number;
+  _maxSize?: number;
 }
 export interface IJVKeyFileJSON {
   type: 'file';
@@ -23,8 +23,8 @@ export class JVFile implements IJVFile, IJVKey {
   public null: boolean = false;
   public extensions?: Array<string>;
   public mimeTypes?: Array<string>;
-  public minSize?: number;
-  public maxSize?: number;
+  public _minSize?: number;
+  public _maxSize?: number;
   constructor(_null?: boolean, extensions?: Array<string>, mimeTypes?: Array<string>, minSize?: number, maxSize?: number) {
     _null && this.setNull(_null);
     extensions && this.setExtensions(extensions);
@@ -44,6 +44,7 @@ export class JVFile implements IJVFile, IJVKey {
     this.extensions = value;
     return this;
   }
+  public ext = this.setExtensions;
   public setMimeTypes(value?: Array<string>): JVFile {
     if (typeof value === 'undefined') {
       this.mimeTypes = undefined;
@@ -56,28 +57,30 @@ export class JVFile implements IJVFile, IJVKey {
     this.mimeTypes = value;
     return this;
   }
+  public mime = this.setMimeTypes;
   public setMinSize(value?: number): JVFile {
     if (typeof value === 'undefined') {
-      this.minSize = undefined;
+      this._minSize = undefined;
       return this;
     }
     if (typeof value !== 'number' || value < 0)
       throwError(JVKeyError, `The minSize value must be a positive number. Received "${typeof value}".`, '');
-    if (this.maxSize && this.maxSize > 0 && value > this.maxSize)
-      throwError(JVKeyError, `The minSize value "${value}" is greater than the maxSize value "${this.maxSize}".`, '');
-    this.minSize = value;
+    if (this._maxSize && this._maxSize > 0 && value > this._maxSize)
+      throwError(JVKeyError, `The minSize value "${value}" is greater than the maxSize value "${this._maxSize}".`, '');
+    this._minSize = value;
     return this;
   }
+  public minSize = this.setMinSize;
   public setMaxSize(value?: number): JVFile {
     if (typeof value === 'undefined') {
-      this.maxSize = undefined;
+      this._maxSize = undefined;
       return this;
     }
     if (typeof value !== 'number' || value < 0)
       throwError(JVKeyError, `The maxSize value must be a positive number. Received "${typeof value}".`, '');
-    if (this.minSize && this.minSize > 0 && value < this.minSize)
-      throwError(JVKeyError, `The maxSize value "${value}" is less than the minSize value "${this.minSize}".`, '');
-    this.maxSize = value;
+    if (this._minSize && this._minSize > 0 && value < this._minSize)
+      throwError(JVKeyError, `The maxSize value "${value}" is less than the minSize value "${this._minSize}".`, '');
+    this._maxSize = value;
     return this;
   }
   public setNull(value: boolean = true): JVFile {
@@ -86,6 +89,9 @@ export class JVFile implements IJVFile, IJVKey {
     this.null = value;
     return this;
   }
+  public nullable(nullable: boolean = true) {
+    return this.setNull(nullable);
+  }
   private testingMessage(value: any, trace: Array<string>): void {
     try {
       if (process.env.JSON_VALIDATOR_TESTING_MODE_KEY === 'yes i am testing') {
@@ -93,7 +99,7 @@ export class JVFile implements IJVFile, IJVKey {
       }
     } catch (e) { }
   }
-  public validate(value: any, trace: Array<string>): boolean {
+  public validate(value: any, trace: Array<string>, _throwError: boolean = true): boolean {
     this.testingMessage(value, trace);
     if (this.null && value === null)
       return true;
@@ -109,14 +115,26 @@ export class JVFile implements IJVFile, IJVKey {
       Array.isArray(this.mimeTypes) &&
       !this.mimeTypes.includes(mimeType) &&
       !this.mimeTypes.some((m: string) => m.endsWith('*') && mimeType[0] === m[0])
-    )
-      throwError(JVKeyError, `The file has mime type "${mimeType}". Expected mime type to be one of "${this.mimeTypes.join(',')}".`, trace.join('/'));
-    if (!(['undefined', 'boolean'].includes(typeof this.extensions)) && Array.isArray(this.extensions) && !this.extensions.includes(extension))
-      throwError(JVKeyError, `The file has extension "${extension}". Expected extension to be one of "${this.extensions.join(',')}".`, trace.join('/'));
-    if (typeof this.minSize === 'number' && value.size < this.minSize)
-      throwError(JVKeyError, `The file has size "${value.size}". Expected size is at least "${this.minSize}".`, trace.join('/'));
-    if (typeof this.maxSize === 'number' && value.size > this.maxSize)
-      throwError(JVKeyError, `The file has size "${value.size}". Expected size is at most "${this.maxSize}".`, trace.join('/'));
+    ) {
+      if (_throwError)
+        throwError(JVKeyError, `The file has mime type "${mimeType}". Expected mime type to be one of "${this.mimeTypes.join(',')}".`, trace.join('/'));
+      else return false;
+    }
+    if (!(['undefined', 'boolean'].includes(typeof this.extensions)) && Array.isArray(this.extensions) && !this.extensions.includes(extension)) {
+      if (_throwError)
+        throwError(JVKeyError, `The file has extension "${extension}". Expected extension to be one of "${this.extensions.join(',')}".`, trace.join('/'));
+      else return false;
+    }
+    if (typeof this._minSize === 'number' && value.size < this._minSize) {
+      if (_throwError)
+        throwError(JVKeyError, `The file has size "${value.size}". Expected size is at least "${this._minSize}".`, trace.join('/'));
+      else return false;
+    }
+    if (typeof this._maxSize === 'number' && value.size > this._maxSize) {
+      if (_throwError)
+        throwError(JVKeyError, `The file has size "${value.size}". Expected size is at most "${this._maxSize}".`, trace.join('/'));
+      else return false;
+    }
     return true;
   }
 
@@ -128,8 +146,8 @@ export class JVFile implements IJVFile, IJVKey {
       null: this.null,
       extensions: this.extensions,
       mimeTypes: this.mimeTypes,
-      minSize: this.minSize,
-      maxSize: this.maxSize
+      minSize: this._minSize,
+      maxSize: this._maxSize
     };
   }
   public example() {
@@ -139,8 +157,8 @@ export class JVFile implements IJVFile, IJVKey {
 
     let hasExtensions = this.extensions && this.extensions.length > 0 ? `Allowed extensions: ${this.extensions.join(', ')}` : '';
     let hasMimeTypes = this.mimeTypes && this.mimeTypes.length > 0 ? `Allowed mime types: ${this.mimeTypes.join(', ')}` : '';
-    let hasMinSize = typeof this.minSize === 'number' ? `Minimum size: ${this.minSize} bytes` : '';
-    let hasMaxSize = typeof this.maxSize === 'number' ? `Maximum size: ${this.maxSize} bytes` : '';
+    let hasMinSize = typeof this._minSize === 'number' ? `Minimum size: ${this._minSize} bytes` : '';
+    let hasMaxSize = typeof this._maxSize === 'number' ? `Maximum size: ${this._maxSize} bytes` : '';
     return `A file, ${[hasExtensions, hasMimeTypes, hasMinSize, hasMaxSize].filter(Boolean).join(', ')}.`;
   }
 

@@ -10,11 +10,16 @@ import { IJVKeyFileJSON } from "../File";
 import { IJVKeyNodeJSON } from "../Node";
 import { IJVKeyNumberJSON } from "../Number";
 import { IJVKeyStringJSON } from "../String";
+import { JV } from "../../../../src/JsonValidator";
 
 export interface IJVCustom { }
 export type OverrideProps<T, U extends Partial<Record<keyof T, any>>> = Omit<T, keyof U> & U;
 
-export interface IJVKeyCustomJSON { type: 'custom'; null: boolean; }
+export interface IJVKeyCustomJSON {
+  type: 'custom';
+  callback: string;
+  null: boolean;
+}
 
 /**
  * @class JVCustom
@@ -48,22 +53,44 @@ export class JVCustom implements IJVKey {
   constructor(f_validation: (value: any, trace: Array<string>) => boolean) {
     if (typeof f_validation !== 'function')
       throwError(JVKeyError, `The validation function is not provided or is not a function.`, '');
-    this._f_validation = f_validation;
+    if (typeof f_validation === 'string') {
+      const func = JV.getCustom(f_validation);
+      if (!func)
+        throwError(JVKeyError, `The custom validation function "${f_validation}" is not registered. Please register it using "JV.registerCustom(name, func)".`, '');
+      this._f_validation = func as (value: any, trace: Array<string>) => boolean;
+    } else this._f_validation = f_validation;
     this.null = false;
   }
+
   template() { return ''; }
-  public validate(value: any, trace: Array<string>): boolean {
+  public validate(value: any, trace: Array<string>, _throwError: boolean = true): boolean {
     try {
       const res = this._f_validation(value, trace);
       if (!res)
-        throwError(JVKeyError, `The value "${value}" is not valid for the custom key.`, trace.join('/'));
-      return false;
+        if (_throwError)
+          throwError(JVKeyError, `The value "${value}" is not valid for the custom key.`, trace.join('/'));
+        else return false;
+      return true;
     } catch (e) {
       return false;
     }
   };
-  public json(): IJVKeyAnyJSON {
-    throw new Error('You cannot serialize a custom key in JSON Validator. It is not supported.');
+  public json(): IJVKeyCustomJSON {
+    if (typeof this._f_validation === 'function')
+      throw new Error('You cannot serialize a custom key in JSON Validator. It is not supported.');
+    return {
+      type: 'custom',
+      callback: (this._f_validation as unknown as string),
+      null: this.null
+    };
+  }
+  public static fromJSON(json: IJVKeyCustomJSON): JVCustom {
+    if (json.type !== 'custom')
+      throwError(JVKeyError, `The type of the key must be "custom". Received "${json.type}".`, '');
+    const func = JV.getCustom(json.callback);
+    if (!func)
+      throwError(JVKeyError, `The custom validation function "${json.callback}" is not registered. Please register it using "JV.registerCustom(name, func)".`, '');
+    return new JVCustom(func as (value: any, trace: Array<string>) => boolean);
   }
 
   public path(trace: Array<string>) { return trace.join('/'); }

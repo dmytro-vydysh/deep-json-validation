@@ -4,8 +4,8 @@ import { TJVKeyType } from "../..";
 
 
 export interface IJVBigInt {
-  min?: bigint;
-  max?: bigint;
+  _min?: bigint;
+  _max?: bigint;
   _enum?: TJVItemOfType<bigint> | null
 }
 export interface IJVKeyBigIntJSON {
@@ -18,8 +18,8 @@ export interface IJVKeyBigIntJSON {
 
 export class JVBigInt implements IJVKey, IJVBigInt {
   public null: boolean = false;
-  public min?: bigint;
-  public max?: bigint;
+  public _min?: bigint;
+  public _max?: bigint;
   public type: string = 'bigint';
   public _enum?: TJVItemOfType<bigint> | null = null;
   constructor(_null?: boolean, min?: bigint, max?: bigint, _enum?: TJVItemOfType<bigint>) {
@@ -28,8 +28,8 @@ export class JVBigInt implements IJVKey, IJVBigInt {
     max && this.setMax(max);
     _enum && this.setEnum(_enum);
     _null && this.setNull(_null);
-    this.min = min;
-    this.max = max;
+    this._min = min;
+    this._max = max;
     this._enum = _enum === null ? null : (typeof _enum === 'undefined' ? null : _enum);
 
     if (typeof this._enum !== 'boolean' && Array.isArray(this._enum)) {
@@ -41,28 +41,30 @@ export class JVBigInt implements IJVKey, IJVBigInt {
   }
   public setMin(value?: bigint): JVBigInt {
     if (typeof value === 'undefined') {
-      this.min = undefined;
+      this._min = undefined;
       return this;
     }
     if (typeof value !== 'bigint')
       throwError(JVKeyError, `The min value must be a bigint. Received "${typeof value}".`, '');
-    if (this.max && this.max > 0 && value > this.max)
-      throwError(JVKeyError, `The min value "${value}" is greater than the max value "${this.max}".`, '');
-    this.min = value;
+    if (this._max && this._max > 0 && value > this._max)
+      throwError(JVKeyError, `The min value "${value}" is greater than the max value "${this._max}".`, '');
+    this._min = value;
     return this;
   }
+  public min = this.setMin;
   public setMax(value?: bigint): JVBigInt {
     if (typeof value === 'undefined') {
-      this.max = undefined;
+      this._max = undefined;
       return this;
     }
     if (typeof value !== 'bigint')
       throwError(JVKeyError, `The max value must be a bigint. Received "${typeof value}".`, '');
-    if (this.min && this.min > 0 && value < this.min)
-      throwError(JVKeyError, `The max value "${value}" is less than the min value "${this.min}".`, '');
-    this.max = value;
+    if (this._min && this._min > 0 && value < this._min)
+      throwError(JVKeyError, `The max value "${value}" is less than the min value "${this._min}".`, '');
+    this._max = value;
     return this;
   }
+  public max = this.setMax;
   public setEnum(value?: TJVItemOfType<bigint> | null): JVBigInt {
     if (typeof value === 'undefined') {
       this._enum = null;
@@ -77,11 +79,15 @@ export class JVBigInt implements IJVKey, IJVBigInt {
     this._enum = value;
     return this;
   }
+  public enum = this.setEnum;
   public setNull(value: boolean = true): JVBigInt {
     if (typeof value !== 'boolean')
       throwError(JVKeyError, `The null value must be a boolean. Received "${typeof value}".`, '');
     this.null = value;
     return this;
+  }
+  public nullable(nullable: boolean = true) {
+    return this.setNull(nullable);
   }
   private testingMessage(value: any, trace: Array<string>): void {
     try {
@@ -90,29 +96,37 @@ export class JVBigInt implements IJVKey, IJVBigInt {
       }
     } catch (e) { }
   }
-  public validate(value: any, trace: Array<string>): boolean {
+  public validate(value: any, trace: Array<string>, _throwError: boolean = true): boolean {
     this.testingMessage(value, trace);
     if (this.null && value === null)
       return true;
     try {
       BigInt(value);
     } catch (e) {
-      throwError(JVKeyError, `The Bigint has value "${value}". Expected value to be of type "bigint".`, trace.join('/'));
+      if (_throwError)
+        throwError(JVKeyError, `The Bigint has value "${value}". Expected value to be of type "bigint".`, trace.join('/'));
+      else return false;
     }
-    if (typeof this.min !== 'undefined' && value < BigInt(this.min))
-      throwError(JVKeyError, `The value "${value}" is less than the minimum value "${this.min}".`, trace.join('/'));
-    if (typeof this.max !== 'undefined' && value > BigInt(this.max))
-      throwError(JVKeyError, `The value "${value}" is greater than the maximum value "${this.max}".`, trace.join('/'));
+    if (typeof this._min !== 'undefined' && value < BigInt(this._min))
+      if (_throwError)
+        throwError(JVKeyError, `The value "${value}" is less than the minimum value "${this._min}".`, trace.join('/'));
+      else return false;
+    if (typeof this._max !== 'undefined' && value > BigInt(this._max))
+      if (_throwError)
+        throwError(JVKeyError, `The value "${value}" is greater than the maximum value "${this._max}".`, trace.join('/'));
+      else return false;
     if (typeof this._enum !== 'boolean' && Array.isArray(this._enum) && !this._enum.includes(BigInt(value.toString())))
-      throwError(JVKeyError, `The value "${value}" is not one of the allowed values: "${this._enum.join(',')}".`, trace.join('/'));
+      if (_throwError)
+        throwError(JVKeyError, `The value "${value}" is not one of the allowed values: "${this._enum.join(',')}".`, trace.join('/'));
+      else return false;
     return true;
   }
   public json(): IJVKeyBigIntJSON {
     return {
       type: 'bigint',
       null: this.null,
-      min: this.min,
-      max: this.max,
+      min: this._min,
+      max: this._max,
       enum: typeof this._enum !== 'boolean' && Array.isArray(this._enum) ? this._enum : null
     };
   }
@@ -123,8 +137,8 @@ export class JVBigInt implements IJVKey, IJVBigInt {
   template() { return ''; }
   public path(trace: Array<string>) { return trace.join('/'); }
   public exampleWithRules() {
-    let hasMin = typeof this.min === 'number' ? `must be greater or equal to ${String(this.min)}n` : '';
-    let hasMax = typeof this.max === 'number' ? `must be less or equal to ${String(this.max)}n` : '';
+    let hasMin = typeof this._min === 'number' ? `must be greater or equal to ${String(this._min)}n` : '';
+    let hasMax = typeof this._max === 'number' ? `must be less or equal to ${String(this._max)}n` : '';
     let isNull = this.null ? 'can be null' : 'cannot be null';
     let enumValues = this._enum ? `allowed values: ${this._enum.map(e => String(e).concat('n')).join(', ')}` : '';
     return `A bigint, must be passed as a string !!, ${[hasMin, hasMax, isNull, enumValues].filter(Boolean).join(', ')}.`;

@@ -9,6 +9,7 @@ export * from './src/Key/src/File';
 export * from './src/Key/src/Node';
 export * from './src/Key/src/Number';
 export * from './src/Key/src/String';
+export * from './src/Key/src/SomeOf';
 export * from './src/Key'
 export * from './src/Error';
 export * from './src/JsonValidator';

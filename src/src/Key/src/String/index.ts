@@ -33,6 +33,7 @@ export class JVString implements IJVKey, IJVString {
     this.regex = typeof value === 'string' ? new RegExp(value) : value;
     return this;
   }
+  public regExp = this.setRegex;
   public setEnum(value?: TJVItemOfType<string> | null): JVString {
     if (typeof value === 'undefined') {
       this._enum = null;
@@ -45,11 +46,15 @@ export class JVString implements IJVKey, IJVString {
     this._enum = value;
     return this;
   }
+  public enum = this.setEnum;
   public setNull(value: boolean = true): JVString {
     if (typeof value !== 'boolean')
       throwError(JVKeyError, `The null value must be a boolean. Received "${typeof value}".`, '');
     this.null = value;
     return this;
+  }
+  public nullable(nullable: boolean = true) {
+    return this.setNull(nullable);
   }
   private testingMessage(value: any, trace: Array<string>): void {
     try {
@@ -58,20 +63,29 @@ export class JVString implements IJVKey, IJVString {
       }
     } catch (e) { }
   }
-  public validate(value: any, trace: Array<string>): boolean {
+  public validate(value: any, trace: Array<string>, _throwError: boolean = true): boolean {
     this.testingMessage(value, trace);
     if (this.null && value === null)
       return true;
 
-    if (typeof value !== this.type)
-      throwError(JVKeyError, `The type of the value is "${typeof value}". Expected type is "string".`, trace.join('/'));
+    if (typeof value !== this.type) {
+      if (_throwError)
+        throwError(JVKeyError, `The type of the value is "${typeof value}". Expected type is "string".`, trace.join('/'));
+      else return false;
+    }
 
-    if (typeof this.regex !== 'undefined' && !this.regex.test(value))
-      throwError(JVKeyRegexError, `The value "${value}" does not match the regex "${this.regex.source}".`, trace.join('/'));
+    if (typeof this.regex !== 'undefined' && !this.regex.test(value)) {
+      if (_throwError)
+        throwError(JVKeyRegexError, `The value "${value}" does not match the regex "${this.regex.source}".`, trace.join('/'));
+      else return false;
+    }
 
     if (typeof this._enum !== 'boolean' && Array.isArray(this._enum))
-      if (!(this._enum.includes(value)))
-        throwError(JVKeyError, `The value "${value}" is not one of the allowed values: "${this._enum.join(',')}".`, trace.join('/'));
+      if (!(this._enum.includes(value))) {
+        if (_throwError)
+          throwError(JVKeyError, `The value "${value}" is not one of the allowed values: "${this._enum.join(',')}".`, trace.join('/'));
+        else return false;
+      }
 
     return true;
   }

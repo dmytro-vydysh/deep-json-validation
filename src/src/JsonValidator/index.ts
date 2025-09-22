@@ -37,7 +37,7 @@ export interface IJV {
   keys: Array<IJVKeyGlobal>;
 
   /** This method validate */
-  validate: (values: any, trace: Array<string>) => boolean;
+  validate: (values: any, throwE: boolean, trace: Array<string>) => boolean;
 
   /** You can add a key to your JSON Validator */
   addKey: (key: JVKey) => JV;
@@ -67,6 +67,92 @@ export interface IJV {
  */
 export class JV implements IJV {
 
+  /** Global list of classes registered for serialization of JVClass instances */
+  private static classes: Map<string, Function> = new Map<string, Function>();
+
+  /**
+   * A global list of custom validation functions registered for JVCustom instances. (needed for serialization)
+   */
+  private static customs: Map<string, (value: any, trace: string[], throwError: boolean) => boolean> = new Map<string, (value: any, trace: string[], throwError: boolean) => boolean>();
+
+  /**
+   * 
+   * @param name the name of the class you want to register
+   * @param classRef the class reference
+   * @throws {JVKeyError} if the name is not a string or is an empty string
+   * @throws {JVKeyError} if the classRef is not a function
+   * @throws {JVKeyError} if the class name is already registered
+   * @description You can use this method to register a class for serialization of JVClass instances.
+   */
+  public static registerClass(name: string, classRef: Function) {
+    if (typeof name !== 'string' || name.trim() === '')
+      throw new JVKeyError(`The class name must be a non-empty string.`);
+
+    if (typeof classRef !== 'function')
+      throw new JVKeyError(`The class reference must be a function.`);
+
+    if (this.classes.has(name)) {
+      // check if the classRef is the same as the existing one
+      if (this.classes.get(name) === classRef)
+        return;
+      else
+        throw new JVKeyError(`The class name "${name}" is already registered.`);
+    }
+
+    this.classes.set(name, classRef);
+  }
+
+  /**
+   * 
+   * @param name the name of the class you want to unregister
+   * @throws {JVKeyError} if the name is not a string or is an empty string
+   * @description You can use this method to unregister a class for serialization of JVClass instances.
+   */
+  public static removeClass(name: string) {
+    if (typeof name !== 'string' || name.trim() === '')
+      throw new JVKeyError(`The class name must be a non-empty string.`);
+    this.classes.delete(name);
+  }
+
+  /**
+   * 
+   * @param name the name of the class you want to get
+   * @returns the class reference or undefined if not found
+   */
+  public static getClass(name: string): Function | undefined {
+    if (typeof name !== 'string' || name.trim() === '')
+      throw new JVKeyError(`The class name must be a non-empty string.`);
+    return this.classes.get(name);
+  }
+
+  public static registerCustom(name: string, callback: (value: any, trace: string[], throwError: boolean) => boolean) {
+    if (typeof name !== 'string' || name.trim() === '')
+      throw new JVKeyError(`The custom name must be a non-empty string.`);
+    if (typeof callback !== 'function')
+      throw new JVKeyError(`The custom callback must be a function.`);
+    if (this.customs.has(name)) {
+      // check if the callback is the same as the existing one
+      if (this.customs.get(name) === callback)
+        return;
+      else
+        throw new JVKeyError(`The custom name "${name}" is already registered.`);
+    }
+
+    this.customs.set(name, callback);
+  }
+
+  public static removeCustom(name: string) {
+    if (typeof name !== 'string' || name.trim() === '')
+      throw new JVKeyError(`The custom name must be a non-empty string.`);
+    this.customs.delete(name);
+  }
+
+  public static getCustom(name: string): ((value: any, trace: string[], throwError: boolean) => boolean) | undefined {
+    if (typeof name !== 'string' || name.trim() === '')
+      throw new JVKeyError(`The custom name must be a non-empty string.`);
+    return this.customs.get(name);
+  }
+
   /**
    * The keys of the JSON Validator.
    */
@@ -91,6 +177,22 @@ export class JV implements IJV {
    */
   public static set FILE_CLASS(value: Function) {
     this._FILE_CLASS = value;
+  }
+
+  public static error(error: Error | string): { message: string; address: string } {
+    try {
+      const input: string = error instanceof Error ? error.message : error;
+
+      const messageMatch = input.match(/<JVError>(.*?)<\/JVError>/s);
+      const addressMatch = input.match(/Key address:\s*(.+)/);
+
+      return {
+        message: messageMatch ? messageMatch[1].trim() : input,
+        address: addressMatch ? addressMatch[1].trim() : 'no address found'
+      };
+    } catch (e) {
+      return error instanceof Error ? { message: error.message, address: error.stack || '' } : { message: error, address: '' };
+    }
   }
 
 
@@ -163,8 +265,8 @@ export class JV implements IJV {
    * 
    * -
    */
-  public validate(json: Record<string, any>, trace: Array<string> = []): boolean {
-    return this.keys.every(key => key.validate(json[key.name], trace));
+  public validate(json: Record<string, any>, _throwError: boolean = true, trace: Array<string> = []): boolean {
+    return this.keys.every(key => key.validate(json[key.name], trace, _throwError));
   }
 
   /**
@@ -173,7 +275,7 @@ export class JV implements IJV {
    * @description This method returns the JSON representation of the JSON Validator.
    * It is useful for storing the JSON Validator somewhere, like in a database or a file.
    * @warning You cannot use this method to store a JV that contains a class key in whathever nested level.
-   * @throws {JVKeyError} If the JSON Validator contains a class key.
+   * @throws {JVKeyError} If the JSON Validator contains a class key that uses a class and not a reference OR a JVCustom instance.
    */
   public json(): IJVJSON {
 
@@ -404,8 +506,4 @@ export class JV implements IJV {
     const isDateObject = value instanceof Date && !isNaN(value.getTime());
     return isISOString || isTimestamp || isDateObject;
   }
-
- 
-  
-
 }
