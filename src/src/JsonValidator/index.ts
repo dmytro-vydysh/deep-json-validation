@@ -396,6 +396,7 @@ export class JV implements IJV {
       switch (typeof value) {
         case 'string':
           if (this.isValidDate(value)) {
+            console.log('is date', value);
             config = new JVDate();
             break;
           }
@@ -500,10 +501,30 @@ export class JV implements IJV {
     return jv;
   }
 
-  private static isValidDate(value: string | number | Date): boolean {
-    const isISOString = typeof value === 'string' && !isNaN(Date.parse(value));
-    const isTimestamp = typeof value === 'number' && !isNaN(new Date(value).getTime()) && !isNaN(value) && value === new Date(value).getTime();
-    const isDateObject = value instanceof Date && !isNaN(value.getTime());
-    return isISOString || isTimestamp || isDateObject;
+  // private static isValidDate(value: string | number | Date): boolean {
+  //   const isISOString = typeof value === 'string' && !isNaN(Date.parse(value));
+  //   const isTimestamp = typeof value === 'number' && !isNaN(new Date(value).getTime()) && !isNaN(value) && value === new Date(value).getTime();
+  //   const isDateObject = value instanceof Date && !isNaN(value.getTime());
+  //   const isNotInvalid = new Date(value).toString() !== 'Invalid Date';
+  //   return isISOString || isTimestamp || isDateObject || isNotInvalid;
+  // }
+  private static isValidDate(value: string | number): boolean {
+  // Caso numero → deve essere un timestamp valido
+  if (typeof value === 'number') {
+    return Number.isInteger(value) && !isNaN(new Date(value).getTime());
   }
+
+  // Caso stringa → deve corrispondere a un formato ISO o simile
+  if (typeof value === 'string') {
+    // regex base per ISO 8601 (YYYY-MM-DD o con orario)
+    const isoRegex = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|([+-]\d{2}:\d{2})))?$/;
+
+    if (!isoRegex.test(value)) return false;
+
+    const date = new Date(value);
+    return !isNaN(date.getTime());
+  }
+
+  return false;
+}
 }
