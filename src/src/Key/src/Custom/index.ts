@@ -92,7 +92,7 @@ export class JVCustom implements IJVKey {
     const func = JV.getCustom(json.callback);
     if (!func)
       throwError(JVKeyError, `The custom validation function "${json.callback}" is not registered. Please register it using "JV.registerCustom(name, func)".`, '');
-    return new JVCustom(func as (value: any, trace: Array<string>) => boolean);
+    return new JVCustom(json.callback);
   }
 
   public path(trace: Array<string>) { return trace.join('/'); }
