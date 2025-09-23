@@ -31,17 +31,10 @@ export class JVSomeOf implements IJVKey {
   public validate(value: any, trace: Array<string>, _throwError: boolean = true): boolean {
     this.testingMessage(value, trace);
     let valid = false;
-    for (let i = 0; i < value.length; i++) {
-      if (valid) break;
-      for (const conf of this.conf) {
-        if (valid) break;
-        try {
-          valid = conf.validate(value[i], trace, _throwError);
-          break;
-        } catch (confNotValid) {
-          continue;
-        }
-      }
+    try {
+      valid = this.conf.map(c => c.validate(value, trace, false)).some(Boolean);
+    } catch (e) {
+      valid = false;
     }
     if (!valid && _throwError)
       throwError(JVKeyError, `The value is not valid for any of the provided configurations.`, trace.join('/'));
@@ -54,7 +47,7 @@ export class JVSomeOf implements IJVKey {
     ];
   }
   public path(trace: Array<string>) {
-    return this.conf.map(c => c.path(trace));//trace.join('/').concat('[aaa]'); 
+    return this.conf.map(c => c.path(trace));
   }
   public json(): IJVKeySomeOfJSON {
     return {
