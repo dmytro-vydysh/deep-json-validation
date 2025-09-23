@@ -231,7 +231,7 @@ We need to make JV throw an error if validation fails.
 (async () => {
 
   try {
-      
+
     await createPersonMiddlewareThrowError({
       body: {
         name: "Dmytro", // invalid
@@ -292,7 +292,7 @@ Validation fails on the first error encountered, so if there are multiple errors
 const newJV = new JV();
 
 ```
-##  Method require() & req()
+## Method require() & req()
 It is used to make a key mandatory in the JSON you want to validate.    
 If the key is not present, validation fails.
 
@@ -335,7 +335,7 @@ The alias "opt" version is also available
 newJV.opt('key3', new JVAny());
 ```
 
-##  Method example()
+## Method example()
 
 It is used to generate a JSON sample that meets the defined validation rules.\
 Useful for testing validation rules or for obtaining a valid JSON sample.\
@@ -353,7 +353,7 @@ Output:
   key3: 'Any seriazable value, including null.'
 }
 ```
-##  Method exampleWithRules()
+## Method exampleWithRules()
 It is used to generate JSON with descriptive strings for the defined validation rules.\
 Useful for quick documentation.
  
@@ -371,7 +371,7 @@ console.log(newJV.exampleWithRules());
 
 
 
-##  Method path() 
+## Method path() 
 Returns the structure of the JSON we want to validate, with the addresses of each key present in the JSON.
 
 ``` typescript
@@ -394,7 +394,7 @@ Output:
 ```
 
 
-##  Static method schema()
+## Static method schema()
 It is used to create Javascript schemas from JSON.\
 Somewhat limiting, but useful with simple data types like strings, arrays, numbers, Booleans, and dates.\
 It does not support complex data types like custom classes or custom validations.\
@@ -421,7 +421,7 @@ Output:
 
 
 
-##  Method removeKey()
+## Method removeKey()
 It is used to remove a key from the JV validation schema.\
 It is useful for dynamically modifying the validation schema based on certain conditions.
 
@@ -431,7 +431,7 @@ It is useful for dynamically modifying the validation schema based on certain co
 
 
 
-##  Method json()
+## Method json()
 
 It is used to serialize the JV validation schema into a JSON that we can then historicize or perform other operations.\
 The JSON produced can later be used to reconstruct the original JV validation schema.
@@ -481,7 +481,7 @@ Output:
 }
 ```
 
-##  Static method fromJSON()
+## Static method fromJSON()
 It is used to reconstruct a JV validation schema from a JSON produced by the json() method.
 
 
@@ -494,7 +494,7 @@ const jvFromJSON = JV.fromJSON(newJV.json());
 
 
 
-##  Static method error()
+## Static method error()
 It is used to extract validation error data quickly and easily.
 
 ``` typescript
@@ -511,7 +511,7 @@ Output:
 }
 ```
 
-##  Method validate()
+## Method validate()
 It is used to validate JSON against the defined JV validation schema.\
 It returns true if the JSON is valid; otherwise, if the second parameter is true (as it is by default), it throws a JVError with the details of the failed validation.
 
@@ -519,7 +519,7 @@ It returns true if the JSON is valid; otherwise, if the second parameter is true
 const valid = newJV.validate({}, false/**Non lanciare l'errore */);
 ``` 
 
-##  Static method registerClass()
+## Static method registerClass()
 It allows you to globally register a class and then serialize the schema that JVClass uses.
 
 
@@ -553,14 +553,14 @@ JVKeyError: You cannot serialize a class key using real classes.
 
 ``` 
 
-##  Static method removeClass()
+## Static method removeClass()
 Allows you to remove registered classes from the global JV class map for JVClass
 ``` typescript
 JV.removeClass('my-class-name');
 ``` 
 
 
-##  Static method registerCustom()
+## Static method registerCustom()
 It allows you to globally register a custom validation function so you can then serialize the schema using JVCustom.
 
 ``` typescript
@@ -607,7 +607,7 @@ JV.removeCustom('my-custom-function');
 
 #List of all JV validators with their methods
 
-##String validator
+## String validator
 
 ``` typescript
 const jvString = new JVString()
@@ -660,7 +660,7 @@ const jvNumber = new JVNumber()
 
 ``` 
 
-##Boolean validator
+## Boolean validator
 
 ``` typescript
 
@@ -706,7 +706,7 @@ const jvBigInt = new JVBigInt()
 
 ``` 
 
-##Date validator
+## Date validator
 
 ``` typescript
 
@@ -738,13 +738,13 @@ const jvDate = new JVDate()
 
 ``` 
 
-##Any validator
+## Any validator
 
 ``` typescript
 const jvAny = new JVAny();
 ```
 
-##Array validator
+## Array validator
 As an argument it needs another JV validator that defines the data type of the array elements.
 
 ``` typescript
@@ -764,7 +764,7 @@ const jvArray = new JVArray(new JVString().setRegex(/^.+$/))
 
 ``` 
 
-##Nested JSON Validator
+## Nested JSON Validator
 As an argument it takes a JV instance that defines the structure of the nested JSON.
 ``` typescript
 const jvNode = new JVNode(new JV().req('subKey1', new JVString()))
@@ -796,7 +796,7 @@ Or, using the global class map to take advantage of serialization
 const jvClass2 = new JVClass('my-class-name')
 ``` 
 
-##Custom validator
+## Custom validator
 To validate use custom functions that must return a boolean value
 
 ``` typescript
@@ -817,7 +817,7 @@ const jvSomeOf = new JVSomeOf([new JVString(), new JVNumber(), new JVBoolean()])
 
 ``` 
 
-#What is JN instead?
+# What is JN instead?
 JN is a JSON navigation tool that allows you to easily navigate, recreate, extract, and modify data within JSON.
 
 
@@ -825,7 +825,7 @@ JN is a JSON navigation tool that allows you to easily navigate, recreate, extra
 
 Below are existing methods with practical examples:
 
-##Static method path()
+## Static method path()
 It is used to get the path of all the final keys present in a JSON.
 
 Warning: This only works with string, number, boolean, and null values.
@@ -917,7 +917,7 @@ Output:
 }
 ``` 
 
-##Static method get()
+## Static method get()
 
 It is used to extract a value from a JSON, given its path.
 
