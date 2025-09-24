@@ -1,6 +1,6 @@
 {
   "name": "deep-json-validation",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "Validate complex JSON objects with deep structure",
   "main": "lib/index.js",
   "scripts": {
