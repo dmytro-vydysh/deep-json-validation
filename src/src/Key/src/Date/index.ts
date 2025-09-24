@@ -156,7 +156,7 @@ export class JVDate implements IJVKey, IJVDate {
     };
   }
   public example() {
-    return new Date().toLocaleDateString();
+    return this._enum && Array.isArray(this._enum) && this._enum?.length > 0 ? this._enum[0] : new Date().toLocaleDateString();
   }
   public exampleWithRules() {
     let hasMin = (typeof this._min !== 'undefined') ? `Must be after ${new Date(this._min).toLocaleDateString()}` : '';

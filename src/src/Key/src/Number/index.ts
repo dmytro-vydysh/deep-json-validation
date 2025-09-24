@@ -124,7 +124,7 @@ export class JVNumber implements IJVKey, IJVNumber {
     return new JVNumber(json.null, json.min, json.max, _enum);
   }
   public example() {
-    return 2025;
+    return this._enum && Array.isArray(this._enum) && this._enum?.length > 0 ? this._enum[0] : 2025;
   }
   template() { return ''; }
   public path(trace: Array<string>) { return trace.join('/'); }

@@ -104,7 +104,7 @@ export class JVString implements IJVKey, IJVString {
     return new JVString(regex, json.null, _enum);
   }
   public example() {
-    return 'a string value';
+    return this._enum && Array.isArray(this._enum) && this._enum?.length > 0 ? this._enum[0] : 'a string value';
   }
   public path(trace: Array<string>) { return trace.join('/'); }
   public exampleWithRules() {

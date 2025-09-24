@@ -131,7 +131,7 @@ export class JVBigInt implements IJVKey, IJVBigInt {
     };
   }
   public example() {
-    return BigInt(123456789123456789n).toString();
+    return this._enum && Array.isArray(this._enum) && this._enum?.length > 0 ? this._enum[0] : BigInt(123456789123456789n).toString();
   }
 
   template() { return ''; }

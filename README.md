@@ -78,7 +78,7 @@ class Response {
 # Most common case: validating an HTTP request body.
 We could have a "people" table with columns like
 * name - string data type, required
-* lastname - string data type, required
+* surname - string data type, required
 * email - string data type, required in the body but nullable in the database
 * phonenumber - string data type, not required
 * dateOfBirth - Date data type, not required in the body and can be null if present
@@ -95,7 +95,7 @@ async function createPersonMiddleware(req: { body: any }, res: Response, next: a
 
   const myJV = new JV()
     .req('name', new JVString().regExp(/^[a-zA-Z'\s]{3,50}$/))
-    .require('lastname', new JVString().regExp(/^[a-zA-Z'\s]{3,50}$/))
+    .require('surname', new JVString().regExp(/^[a-zA-Z'\s]{3,50}$/))
     .req('email', new JVString().regExp(/^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$|^[a-z0-9]{5,12}$/).nullable())
     .optional('phonenumber', new JVString().regExp(/^\+?\d{1,3}(?:\s?\d){5,12}$/))
     .opt('dateOfBirth', new JVDate().nullable())
@@ -142,7 +142,7 @@ async function createPersonMiddlewareThrowError(req: { body: any }, res: Respons
 
   const myJV = new JV()
     .req('name', new JVString().regExp(/^[a-zA-Z'\s]{3,50}$/))
-    .require('lastname', new JVString().regExp(/^[a-zA-Z'\s]{3,50}$/))
+    .require('surname', new JVString().regExp(/^[a-zA-Z'\s]{3,50}$/))
     .req('email', new JVString().regExp(/^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$|^[a-z0-9]{5,12}$/).nullable())
     .optional('phonenumber', new JVString().regExp(/^\+?\d{1,3}(?:\s?\d){5,12}$/))
     .opt('dateOfBirth', new JVDate().nullable())
@@ -184,7 +184,7 @@ async function createPersonMiddlewareThrowError(req: { body: any }, res: Respons
 createPersonMiddleware({
   body: {
     name: "Dmytro",
-    lastname: "Vydysh",
+    surname: "Vydysh",
     email: "info@dmytrovydysh.com",
     dateOfBirth: null,
     hobby: ["Coding"],
@@ -212,7 +212,7 @@ Middleware passed successfully!
 createPersonMiddleware({
   body: {
     name: "Dmytro123", // Invalid
-    lastname: "Vydysh",
+    surname: "Vydysh",
     email: "info@dmytrovydysh.com",
     phonenumber: "1234" // Invalid
   }
@@ -235,7 +235,7 @@ We need to make JV throw an error if validation fails.
     await createPersonMiddlewareThrowError({
       body: {
         name: "Dmytro", // invalid
-        lastname: "Vydysh",
+        surname: "Vydysh",
         email: "info@dmytrovydysh.com",
         phonenumber: "1234" // also invalid
       }
@@ -255,7 +255,7 @@ We need to make JV throw an error if validation fails.
 Output:
 ``` bash
 Validation failed. Details:  {
-  message: `The value "Dmytro123" does not match the regex "^[a-zA-Z'\\s]{3,50}$".`,
+  message: `The value "Dmytro123" does not match the regex "^[a-zA-Z'\s]{3,50}$".`,
   address: 'name'
 }
 ```
@@ -264,7 +264,7 @@ Same thing for the phone number
 Output:
 ``` bash
 Validation failed. Details:  {
-  message: 'The value "1234" does not match the regex "^\\+?\\d{1,3}(?:\\s?\\d){5,12}$".',
+  message: 'The value "1234" does not match the regex "^\\+?\\d{1,3}(?:\s?\\d){5,12}$".',
   address: 'phonenumber'
 }
 ``` 
@@ -275,7 +275,7 @@ Output:
 ``` bash
 JVKeyRegexError: [DEEP JSON VALIDATION] JSON validation failed!
 Error: <JVError>The value "Dmytro123" does not match the regex "^[a-zA-Z'\s]{3,50}$".</JVError>
-Key address: nome
+Key address: name
 ```
 
 It extracts the necessary data and, if successful, returns an object with the following properties:
@@ -313,7 +313,7 @@ newJV.req('key1', new JVNumber());
 
 ```
 
-##  Method optional() & opt()
+## Method optional() & opt()
 
 It is used to make a key optional in the JSON you want to validate. \
 If the key is present, it must match the specified data type, otherwise validation fails.   \
@@ -350,7 +350,7 @@ Output:
   key0: 'a string value',
   key1: 2025,
   key2: false,
-  key3: 'Any seriazable value, including null.'
+  key3: 'Any serializable value, including null.'
 }
 ```
 ## Method exampleWithRules()
@@ -365,7 +365,7 @@ console.log(newJV.exampleWithRules());
   key0: 'A string, Has no specific regex, Cannot be null.',
   key1: 'A number, Cannot be null.',
   key2: 'A boolean, Cannot be null.',
-  key3: 'Any seriazable value'
+  key3: 'Any serializable value'
 }
 ```
 
@@ -395,7 +395,7 @@ Output:
 
 
 ## Static method schema()
-It is used to create Javascript schemas from JSON.\
+It is used to create JavaScript schemas from JSON.\
 Somewhat limiting, but useful with simple data types like strings, arrays, numbers, Booleans, and dates.\
 It does not support complex data types like custom classes or custom validations.\
 Useful for quickly creating a basic validation schema.
@@ -404,7 +404,7 @@ Useful for quickly creating a basic validation schema.
 ``` typescript
 const myJVFromSchema = JV.schema({
   name: 'Dmytro',
-  lastname: 'Vydysh',
+  surname: 'Vydysh',
   dateOfBirth: new Date('1990-01-01'),
 });
 
@@ -414,7 +414,7 @@ Output:
 ``` bash
 {
   name: 'a string value',
-  lastname: 'a string value',
+  surname: 'a string value',
   dateOfBirth: '22/09/2025'
 }
 ```
@@ -433,7 +433,7 @@ It is useful for dynamically modifying the validation schema based on certain co
 
 ## Method json()
 
-It is used to serialize the JV validation schema into a JSON that we can then historicize or perform other operations.\
+It is used to serialize the JV validation schema into a JSON that we can then store or perform other operations.\
 The JSON produced can later be used to reconstruct the original JV validation schema.
 
 Warning: If you used real classes when using the JVClass validators,\
@@ -605,7 +605,7 @@ JV.removeCustom('my-custom-function');
 ``` 
 
 
-#List of all JV validators with their methods
+# List of all JV validators with their methods
 
 ## String validator
 
@@ -871,7 +871,7 @@ Output:
 
 
 ``` 
-## Stati method pathWithValues()
+## Static method pathWithValues()
 It is used to get the path of all the final keys present in a JSON, along with their values.
 
 Warning: This only works with string, number, boolean, and null values.
