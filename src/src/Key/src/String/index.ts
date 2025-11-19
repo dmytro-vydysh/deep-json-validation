@@ -10,6 +10,7 @@ export interface IJVKeyStringJSON {
   type: 'string';
   null: boolean;
   regex?: string;
+  empty?: boolean;
   enum?: TJVItemOfType<string> | null;
 }
 export class JVString implements IJVKey, IJVString {
@@ -17,11 +18,22 @@ export class JVString implements IJVKey, IJVString {
   public regex?: RegExp;
   public type: string = 'string';
   public _enum?: TJVItemOfType<string> | null;
-  constructor(regex?: RegExp | string, _null?: boolean, _enum?: TJVItemOfType<string> | null) {
+  public _empty: boolean = false;
+  constructor(regex?: RegExp | string, _null?: boolean, _enum?: TJVItemOfType<string> | null, _empty?: boolean) {
     regex && this.setRegex(regex);
     _enum && this.setEnum(_enum);
     _null && this.setNull(_null);
+    _empty && this.setEmpty(_empty);
 
+  }
+  public setEmpty(value: boolean = true): JVString {
+    if (typeof value !== 'boolean')
+      throwError(JVKeyError, `The empty value must be a boolean. Received "${typeof value}".`, '');
+    this._empty = value;
+    return this;
+  }
+  public empty(empty: boolean = true) {
+    return this.setEmpty(empty);
   }
   public setRegex(value?: RegExp | string): JVString {
     if (typeof value === 'undefined') {
@@ -94,7 +106,8 @@ export class JVString implements IJVKey, IJVString {
       type: 'string',
       null: this.null,
       regex: this.regex?.source || 'undefined',
-      enum: typeof this._enum !== 'boolean' && Array.isArray(this._enum) ? this._enum : null
+      enum: typeof this._enum !== 'boolean' && Array.isArray(this._enum) ? this._enum : null,
+      empty: this._empty
     };
   }
   template() { return ''; }
